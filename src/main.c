@@ -524,7 +524,7 @@ int main(int id, unsigned long dtb)
   }
 #endif
 
-#if 0
+#if 1
   // GCD demo (with interrupt)
   nodeoffset = fdt_node_offset_by_compatible((void*)dtb_target, 0, "console,gcd0");
   if (nodeoffset < 0) {
@@ -573,7 +573,7 @@ int main(int id, unsigned long dtb)
   kprintf("GCD of (sw) is %d\n", c);
 #endif
 
-#if 1
+#if 0
   // GCD demo
   unsigned long gcd_reg;
   nodeoffset = fdt_node_offset_by_compatible((void*)dtb_target, 0, "console,gcd0");
