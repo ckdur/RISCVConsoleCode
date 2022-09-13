@@ -489,12 +489,12 @@ int main(int id, unsigned long dtb)
   // Pack the FDT and place the data after it
   fdt_pack((void*)dtb_target);
 
-#if 0
+#if 1
   // GPIO move
 
   // Detect the GPIO
   unsigned long gpio_reg;
-  nodeoffset = fdt_subnode_offset((void*)dtb_target, 0, "/soc/gpio");
+  nodeoffset = fdt_path_offset((void*)dtb_target, "/soc/gpio");
   if (nodeoffset < 0) {
     kputs("\r\nCannot find '/soc/gpio'\r\nAborting...");
     while(1);
@@ -509,15 +509,15 @@ int main(int id, unsigned long dtb)
   _REG32(gpio_reg, GPIO_OUTPUT_EN) = 0x3FF;
   
   // Switch the GPIO in an infinite value
-  uint32_t val = 0;
+  uint32_t v = 0;
   while(1) {
-    _REG32(gpio_reg, GPIO_OUTPUT_VAL) = val;
-    val = ~val;
+    _REG32(gpio_reg, GPIO_OUTPUT_VAL) = v;
+    v = ~v;
     for(int i = 0; i < 50000000; i++);
   }
 #endif
 
-#if 1
+#if 0
   // GCD demo (with interrupt)
   nodeoffset = fdt_node_offset_by_compatible((void*)dtb_target, 0, "console,gcd0");
   if (nodeoffset < 0) {
