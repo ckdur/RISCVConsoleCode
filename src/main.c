@@ -27,6 +27,13 @@ function_ptr_t g_ext_interrupt_handlers[32];
 function_ptr_t g_time_interrupt_handler = no_interrupt_handler;
 plic_instance_t g_plic;// Instance data for the PLIC.
 
+// HTIF stuff
+
+extern volatile uint64_t tohost;
+extern volatile uint64_t fromhost;
+volatile uint64_t tohost;
+volatile uint64_t fromhost;
+
 #define RTC_FREQ 1000000 // TODO: This is now extracted
 
 void boot_fail(long code, int trap)
@@ -489,7 +496,7 @@ int main(int id, unsigned long dtb)
   // Pack the FDT and place the data after it
   fdt_pack((void*)dtb_target);
 
-#if 1
+#if 0
   // GPIO move
 
   // Detect the GPIO
@@ -566,10 +573,10 @@ int main(int id, unsigned long dtb)
   kprintf("GCD of (sw) is %d\n", c);
 #endif
 
-#if 0
+#if 1
   // GCD demo
   unsigned long gcd_reg;
-  nodeoffset = fdt_node_offset_by_compatible(fdt, 0, "console,gcd0");
+  nodeoffset = fdt_node_offset_by_compatible((void*)dtb_target, 0, "console,gcd0");
   if (nodeoffset < 0) {
     kputs("\r\nCannot find a node with compatible 'console,gcd0'\r\nAborting...");
     while(1);
@@ -590,7 +597,7 @@ int main(int id, unsigned long dtb)
   
   // Trigger and wait
   _REG32(gcd_reg, GCD_TRIGGER) = 0x00000001;
-  while(!(_REG32(gcd_reg, GCD_TRIGGER) && 0x00000001));
+  while(!(_REG32(gcd_reg, GCD_STATUS) && 0x00000100));
   
   // Get and print the result
   int c = _REG32(gcd_reg, GCD_DATA_C);
