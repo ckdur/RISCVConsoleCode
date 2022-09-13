@@ -545,7 +545,7 @@ int main(int id, unsigned long dtb)
   // Enable the interrupt, and put maximum priority
   // There is only supposed to be 1 interrupt
   PLIC_enable_interrupt (&g_plic, (plic_source) gcd_int); 
-  PLIC_set_priority (plic_instance_t * this_plic, (plic_source) gcd_int, 7);
+  PLIC_set_priority (&g_plic, (plic_source) gcd_int, 7);
   // Map to the PLIC software this interrupt
   g_ext_interrupt_handlers[gcd_int] = gcd_interrupt_handler;
   
