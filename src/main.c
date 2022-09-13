@@ -95,7 +95,7 @@ uintptr_t handle_trap(uintptr_t mcause, uintptr_t epc)
 void remove_from_dtb(void* dtb_target, const char* path) {
   int nodeoffset;
   int err;
-	do{
+  do{
     nodeoffset = fdt_path_offset((void*)dtb_target, path);
     if(nodeoffset >= 0) {
       kputs("\r\nINFO: Removing ");
@@ -110,145 +110,145 @@ void remove_from_dtb(void* dtb_target, const char* path) {
 }
 
 static int fdt_translate_address(void *fdt, uint64_t reg, int parent,
-				 unsigned long *addr)
+         unsigned long *addr)
 {
-	int i, rlen;
-	int cell_addr, cell_size;
-	const fdt32_t *ranges;
-	uint64_t offset = 0, caddr = 0, paddr = 0, rsize = 0;
+  int i, rlen;
+  int cell_addr, cell_size;
+  const fdt32_t *ranges;
+  uint64_t offset = 0, caddr = 0, paddr = 0, rsize = 0;
 
-	cell_addr = fdt_address_cells(fdt, parent);
-	if (cell_addr < 1)
-		return -FDT_ERR_NOTFOUND;
+  cell_addr = fdt_address_cells(fdt, parent);
+  if (cell_addr < 1)
+    return -FDT_ERR_NOTFOUND;
 
-	cell_size = fdt_size_cells(fdt, parent);
-	if (cell_size < 0)
-		return -FDT_ERR_NOTFOUND;
+  cell_size = fdt_size_cells(fdt, parent);
+  if (cell_size < 0)
+    return -FDT_ERR_NOTFOUND;
 
-	ranges = fdt_getprop(fdt, parent, "ranges", &rlen);
-	if (ranges && rlen > 0) {
-		for (i = 0; i < cell_addr; i++)
-			caddr = (caddr << 32) | fdt32_to_cpu(*ranges++);
-		for (i = 0; i < cell_addr; i++)
-			paddr = (paddr << 32) | fdt32_to_cpu(*ranges++);
-		for (i = 0; i < cell_size; i++)
-			rsize = (rsize << 32) | fdt32_to_cpu(*ranges++);
-		if (reg < caddr || caddr >= (reg + rsize )) {
-			//kprintf("invalid address translation\n");
-			return -FDT_ERR_NOTFOUND;
-		}
-		offset = reg - caddr;
-		*addr = paddr + offset;
-	} else {
-		/* No translation required */
-		*addr = reg;
-	}
+  ranges = fdt_getprop(fdt, parent, "ranges", &rlen);
+  if (ranges && rlen > 0) {
+    for (i = 0; i < cell_addr; i++)
+      caddr = (caddr << 32) | fdt32_to_cpu(*ranges++);
+    for (i = 0; i < cell_addr; i++)
+      paddr = (paddr << 32) | fdt32_to_cpu(*ranges++);
+    for (i = 0; i < cell_size; i++)
+      rsize = (rsize << 32) | fdt32_to_cpu(*ranges++);
+    if (reg < caddr || caddr >= (reg + rsize )) {
+      //kprintf("invalid address translation\n");
+      return -FDT_ERR_NOTFOUND;
+    }
+    offset = reg - caddr;
+    *addr = paddr + offset;
+  } else {
+    /* No translation required */
+    *addr = reg;
+  }
 
-	return 0;
+  return 0;
 }
 
 int fdt_get_node_addr_size(void *fdt, int node, unsigned long *addr,
-			   unsigned long *size)
+         unsigned long *size)
 {
-	int parent, len, i, rc;
-	int cell_addr, cell_size;
-	const fdt32_t *prop_addr, *prop_size;
-	uint64_t temp = 0;
+  int parent, len, i, rc;
+  int cell_addr, cell_size;
+  const fdt32_t *prop_addr, *prop_size;
+  uint64_t temp = 0;
 
-	parent = fdt_parent_offset(fdt, node);
-	if (parent < 0)
-		return parent;
-	cell_addr = fdt_address_cells(fdt, parent);
-	if (cell_addr < 1)
-		return -FDT_ERR_NOTFOUND;
+  parent = fdt_parent_offset(fdt, node);
+  if (parent < 0)
+    return parent;
+  cell_addr = fdt_address_cells(fdt, parent);
+  if (cell_addr < 1)
+    return -FDT_ERR_NOTFOUND;
 
-	cell_size = fdt_size_cells(fdt, parent);
-	if (cell_size < 0)
-		return -FDT_ERR_NOTFOUND;
+  cell_size = fdt_size_cells(fdt, parent);
+  if (cell_size < 0)
+    return -FDT_ERR_NOTFOUND;
 
-	prop_addr = fdt_getprop(fdt, node, "reg", &len);
-	if (!prop_addr)
-		return -FDT_ERR_NOTFOUND;
-	prop_size = prop_addr + cell_addr;
+  prop_addr = fdt_getprop(fdt, node, "reg", &len);
+  if (!prop_addr)
+    return -FDT_ERR_NOTFOUND;
+  prop_size = prop_addr + cell_addr;
 
-	if (addr) {
-		for (i = 0; i < cell_addr; i++)
-			temp = (temp << 32) | fdt32_to_cpu(*prop_addr++);
-		do {
-			if (parent < 0)
-				break;
-			rc  = fdt_translate_address(fdt, temp, parent, addr);
-			if (rc)
-				break;
-			parent = fdt_parent_offset(fdt, parent);
-			temp = *addr;
-		} while (1);
-	}
-	temp = 0;
+  if (addr) {
+    for (i = 0; i < cell_addr; i++)
+      temp = (temp << 32) | fdt32_to_cpu(*prop_addr++);
+    do {
+      if (parent < 0)
+        break;
+      rc  = fdt_translate_address(fdt, temp, parent, addr);
+      if (rc)
+        break;
+      parent = fdt_parent_offset(fdt, parent);
+      temp = *addr;
+    } while (1);
+  }
+  temp = 0;
 
-	if (size) {
-		for (i = 0; i < cell_size; i++)
-			temp = (temp << 32) | fdt32_to_cpu(*prop_size++);
-		*size = temp;
-	}
+  if (size) {
+    for (i = 0; i < cell_size; i++)
+      temp = (temp << 32) | fdt32_to_cpu(*prop_size++);
+    *size = temp;
+  }
 
-	return 0;
+  return 0;
 }
 
 int fdt_parse_hart_id(void *fdt, int cpu_offset, uint32_t *hartid)
 {
-	int len;
-	const void *prop;
-	const fdt32_t *val;
+  int len;
+  const void *prop;
+  const fdt32_t *val;
 
-	if (!fdt || cpu_offset < 0)
-		return -FDT_ERR_NOTFOUND;
+  if (!fdt || cpu_offset < 0)
+    return -FDT_ERR_NOTFOUND;
 
-	prop = fdt_getprop(fdt, cpu_offset, "device_type", &len);
-	if (!prop || !len)
-		return -FDT_ERR_NOTFOUND;
-	if (strncmp (prop, "cpu", strlen ("cpu")))
-		return -FDT_ERR_NOTFOUND;
+  prop = fdt_getprop(fdt, cpu_offset, "device_type", &len);
+  if (!prop || !len)
+    return -FDT_ERR_NOTFOUND;
+  if (strncmp (prop, "cpu", strlen ("cpu")))
+    return -FDT_ERR_NOTFOUND;
 
-	val = fdt_getprop(fdt, cpu_offset, "reg", &len);
-	if (!val || len < sizeof(fdt32_t))
-		return -FDT_ERR_NOTFOUND;
+  val = fdt_getprop(fdt, cpu_offset, "reg", &len);
+  if (!val || len < sizeof(fdt32_t))
+    return -FDT_ERR_NOTFOUND;
 
-	if (len > sizeof(fdt32_t))
-		val++;
+  if (len > sizeof(fdt32_t))
+    val++;
 
-	if (hartid)
-		*hartid = fdt32_to_cpu(*val);
+  if (hartid)
+    *hartid = fdt32_to_cpu(*val);
 
-	return 0;
+  return 0;
 }
 
 int fdt_parse_max_hart_id(void *fdt, uint32_t *max_hartid)
 {
-	uint32_t hartid;
-	int err, cpu_offset, cpus_offset;
+  uint32_t hartid;
+  int err, cpu_offset, cpus_offset;
 
-	if (!fdt)
-		return -FDT_ERR_NOTFOUND;
-	if (!max_hartid)
-		return 0;
+  if (!fdt)
+    return -FDT_ERR_NOTFOUND;
+  if (!max_hartid)
+    return 0;
 
-	*max_hartid = 0;
+  *max_hartid = 0;
 
-	cpus_offset = fdt_path_offset(fdt, "/cpus");
-	if (cpus_offset < 0)
-		return cpus_offset;
+  cpus_offset = fdt_path_offset(fdt, "/cpus");
+  if (cpus_offset < 0)
+    return cpus_offset;
 
-	fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
-		err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
-		if (err)
-			continue;
+  fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) {
+    err = fdt_parse_hart_id(fdt, cpu_offset, &hartid);
+    if (err)
+      continue;
 
-		if (hartid > *max_hartid)
-			*max_hartid = hartid;
-	}
+    if (hartid > *max_hartid)
+      *max_hartid = hartid;
+  }
 
-	return 0;
+  return 0;
 }
 
 int fdt_find_or_add_subnode(void *fdt, int parentoffset, const char *name)
@@ -261,13 +261,48 @@ int fdt_find_or_add_subnode(void *fdt, int parentoffset, const char *name)
     offset = fdt_add_subnode(fdt, parentoffset, name);
 
   if (offset < 0) {
-  	uart_puts((void*)uart_reg, fdt_strerror(offset));
-  	uart_puts((void*)uart_reg, "\r\n");
+    uart_puts((void*)uart_reg, fdt_strerror(offset));
+    uart_puts((void*)uart_reg, "\r\n");
   }
 
   return offset;
 }
 int timescale_freq = 0;
+
+
+// *************************
+// GCD Stuff
+// *************************
+#define GCD_TRIGGER 0x00
+#define GCD_DATA_A 0x04
+#define GCD_DATA_B 0x08
+#define GCD_DATA_C 0x0C
+#define GCD_STATUS 0x10
+
+unsigned long gcd_reg;
+void gcd_interrupt_handler (void) {
+  // Get and print the result
+  int c = _REG32(gcd_reg, GCD_DATA_C);
+  kprintf("GCD of (hw) is %d\n", c);
+  
+  // Clean the interrupt
+  _REG32(gcd_reg, GCD_TRIGGER) = 0x00000000;
+};
+
+int gcd(int a, int b) {
+  if (a == 0 || b == 0)
+    return 0;
+  else if (a == b)
+    return a;
+  else if (a > b)
+    return gcd(a - b, b);
+  else 
+    return gcd(a, b - a);
+}
+
+// *************************
+// GCD Stuff (end)
+// *************************
 
 // Register to extract
 unsigned long uart_reg = 0;
@@ -284,7 +319,7 @@ int main(int id, unsigned long dtb)
   int nodeoffset;
   int err = 0;
   int len;
-	const fdt32_t *val;
+  const fdt32_t *val;
   
   // 1. Get the uart reg
   nodeoffset = fdt_path_offset((void*)dtb, "/soc/serial");
@@ -418,7 +453,7 @@ int main(int id, unsigned long dtb)
   // Put the choosen if non existent, and put the bootargs
   nodeoffset = fdt_find_or_add_subnode((void*)dtb_target, 0, "chosen");
   if (nodeoffset < 0) boot_fail(-nodeoffset, 2);
-	
+  
   const char* str = "console=hvc0 earlycon=sbi";
   err = fdt_setprop((void*)dtb_target, nodeoffset, "bootargs", str, strlen(str) + 1);
   if (err < 0) boot_fail(-err, 3);
@@ -438,25 +473,129 @@ int main(int id, unsigned long dtb)
   timescale_freq = fdt32_to_cpu(*val);
   kputs("\r\nGot TIMEBASE: ");
   uart_put_dec((void*)uart_reg, timescale_freq);
-	
-	// Put the timebase-frequency for the cpus
+  
+  // Put the timebase-frequency for the cpus
   nodeoffset = fdt_subnode_offset((void*)dtb_target, 0, "cpus");
-	if (nodeoffset < 0) {
-	  kputs("\r\nCannot find 'cpus'\r\nAborting...");
+  if (nodeoffset < 0) {
+    kputs("\r\nCannot find 'cpus'\r\nAborting...");
     while(1);
-	}
-	err = fdt_setprop_u32((void*)dtb_target, nodeoffset, "timebase-frequency", 1000000);
-	if (err < 0) {
-	  kputs("\r\nCannot set 'timebase-frequency' in 'timebase-frequency'\r\nAborting...");
+  }
+  err = fdt_setprop_u32((void*)dtb_target, nodeoffset, "timebase-frequency", 1000000);
+  if (err < 0) {
+    kputs("\r\nCannot set 'timebase-frequency' in 'timebase-frequency'\r\nAborting...");
     while(1);
-	}
+  }
 
-	// Pack the FDT and place the data after it
-	fdt_pack((void*)dtb_target);
+  // Pack the FDT and place the data after it
+  fdt_pack((void*)dtb_target);
 
+#if 0
+  // GPIO move
 
-  // TODO: From this point, insert any code
-  kputs("\r\n\n\nWelcome! Hello world!\r\n\n");
+  // Detect the GPIO
+  unsigned long gpio_reg;
+  nodeoffset = fdt_subnode_offset((void*)dtb_target, 0, "/soc/gpio");
+  if (nodeoffset < 0) {
+    kputs("\r\nCannot find '/soc/gpio'\r\nAborting...");
+    while(1);
+  }
+  err = fdt_get_node_addr_size((void*)dtb_target, nodeoffset, &gpio_reg, NULL);
+  if (err < 0) {
+    kputs("\r\nCannot get reg space from '/soc/gpio'\r\nAborting...");
+    while(1);
+  }
+  
+  // Enable the GPIO outputs
+  _REG32(gpio_reg, GPIO_OUTPUT_EN) = 0x3FF;
+  
+  // Switch the GPIO in an infinite value
+  uint32_t val = 0;
+  while(1) {
+    _REG32(gpio_reg, GPIO_OUTPUT_VAL) = val;
+    val = ~val;
+    for(int i = 0; i < 50000000; i++);
+  }
+#endif
+
+#if 1
+  // GCD demo (with interrupt)
+  nodeoffset = fdt_node_offset_by_compatible((void*)dtb_target, 0, "console,gcd0");
+  if (nodeoffset < 0) {
+    kputs("\r\nCannot find a node with compatible 'console,gcd0'\r\nAborting...");
+    while(1);
+  }
+  err = fdt_get_node_addr_size((void*)dtb_target, nodeoffset, &gcd_reg, NULL);
+  if (err < 0) {
+    kputs("\r\nCannot get reg space from compatible 'console,gcd0'\r\nAborting...");
+    while(1);
+  }
+  val = fdt_getprop((void*)dtb_target, nodeoffset, "interrupts", &len);
+  if (!val || len < sizeof(fdt32_t)){
+    kputs("\r\nNo interrupts in 'console,gcd0'\r\nAborting...");
+    while(1);
+  }
+  len = len / sizeof(fdt32_t);
+  int gcd_int = fdt32_to_cpu(*val);
+
+  // Enable the machine & timer interrupts
+  set_csr(mstatus, MSTATUS_MIE);
+  set_csr(mie, MIP_MEIP);
+  set_csr(mie, MIP_MTIP);
+  
+  // Enable the interrupt, and put maximum priority
+  // There is only supposed to be 1 interrupt
+  PLIC_enable_interrupt (&g_plic, (plic_source) gcd_int); 
+  PLIC_set_priority (plic_instance_t * this_plic, (plic_source) gcd_int, 7);
+  // Map to the PLIC software this interrupt
+  g_ext_interrupt_handlers[gcd_int] = gcd_interrupt_handler;
+  
+  // If the device exists, then we need to reset it
+  // This also resets the interrupt
+  _REG32(gcd_reg, GCD_TRIGGER) = 0x00000100;
+  _REG32(gcd_reg, GCD_TRIGGER) = 0x00000000;
+  
+  // Try to find the GCD of two big numbers
+  _REG32(gcd_reg, GCD_DATA_A) = 6893;
+  _REG32(gcd_reg, GCD_DATA_B) = 4000;
+  
+  // Trigger. The interrupt will catch the result
+  _REG32(gcd_reg, GCD_TRIGGER) = 0x00000001;
+  
+  // Do it in software
+  int c = gcd(6893, 4000);
+  kprintf("GCD of (sw) is %d\n", c);
+#endif
+
+#if 0
+  // GCD demo
+  unsigned long gcd_reg;
+  nodeoffset = fdt_node_offset_by_compatible(fdt, 0, "console,gcd0");
+  if (nodeoffset < 0) {
+    kputs("\r\nCannot find a node with compatible 'console,gcd0'\r\nAborting...");
+    while(1);
+  }
+  err = fdt_get_node_addr_size((void*)dtb_target, nodeoffset, &gcd_reg, NULL);
+  if (err < 0) {
+    kputs("\r\nCannot get reg space from compatible 'console,gcd0'\r\nAborting...");
+    while(1);
+  }
+  
+  // If the device exists, then we need to reset it
+  _REG32(gcd_reg, GCD_TRIGGER) = 0x00000100;
+  _REG32(gcd_reg, GCD_TRIGGER) = 0x00000000;
+  
+  // Try to find the GCD of 7 and 3
+  _REG32(gcd_reg, GCD_DATA_A) = 7;
+  _REG32(gcd_reg, GCD_DATA_B) = 3;
+  
+  // Trigger and wait
+  _REG32(gcd_reg, GCD_TRIGGER) = 0x00000001;
+  while(!(_REG32(gcd_reg, GCD_TRIGGER) && 0x00000001));
+  
+  // Get and print the result
+  int c = _REG32(gcd_reg, GCD_DATA_C);
+  kprintf("GCD of 7 and 3 is %d\n", c);
+#endif
   
   // If finished, stay in a infinite loop
   while(1);
