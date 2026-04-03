@@ -1,19 +1,19 @@
 BOOTROM_DIR?=$(abspath .)
 
-ISACONF?=RV32IMAC
+ISACONF?=RV64GC
 CROSSCOMPILE?=riscv64-unknown-elf
 CC=$(CROSSCOMPILE)-gcc
 CCX=$(CROSSCOMPILE)-g++
 OBJCOPY=$(CROSSCOMPILE)-objcopy
 OBJDUMP=$(CROSSCOMPILE)-objdump
 ifeq ($(ISACONF),RV64GC)
-CFLAGS_ARCH=-march=rv64imafdc -mabi=lp64d
+CFLAGS_ARCH=-march=rv64imafdc_zicsr -mabi=lp64d
 else ifeq ($(ISACONF),RV64IMAC)
-CFLAGS_ARCH=-march=rv64imac -mabi=lp64
+CFLAGS_ARCH=-march=rv64imac_zicsr -mabi=lp64
 else ifeq ($(ISACONF),RV32GC)
-CFLAGS_ARCH=-march=rv32imafdc -mabi=ilp32d
+CFLAGS_ARCH=-march=rv32imafdc_zicsr -mabi=ilp32d
 else #RV32IMAC
-CFLAGS_ARCH=-march=rv32imac -mabi=ilp32
+CFLAGS_ARCH=-march=rv32imac_zicsr -mabi=ilp32
 endif
 
 CFLAGS=$(CFLAGS_ARCH) -mcmodel=medany -O1 -std=gnu11 -Wall -nostartfiles 
@@ -25,6 +25,7 @@ BUILD_DIR?=$(abspath ./build)
 LIB_FS_O= \
 	src/start.o \
 	src/main.o \
+	src/test.o \
 	uart/uart.o \
 	$(BUILD_DIR)/version.o \
 	clkutils/clkutils.o \

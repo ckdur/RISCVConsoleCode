@@ -5,4 +5,6 @@ extern unsigned long uart_reg;
 extern int timescale_freq;
 extern int tlclk_freq;
 
+void test();
+
 #endif // _MAIN_H

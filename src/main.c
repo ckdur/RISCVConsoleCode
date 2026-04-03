@@ -288,32 +288,39 @@ int main(int id, unsigned long dtb)
   
   // 1. Get the uart reg
   nodeoffset = fdt_path_offset((void*)dtb, "/soc/serial");
-  if (nodeoffset < 0) while(1);
-  err = fdt_get_node_addr_size((void*)dtb, nodeoffset, &uart_reg, NULL);
-  if (err < 0) while(1);
+  if (nodeoffset < 0) {
+    uart_reg = 0x64000000;
+  }
+  else {
+    err = fdt_get_node_addr_size((void*)dtb, nodeoffset, &uart_reg, NULL);
+    if (err < 0) {
+      uart_reg = 0x64000000;
+    }
+  }
   // NOTE: If want to force UART, uncomment these
   //uart_reg = 0x64000000;
-  //tlclk_freq = 20000000;
+  tlclk_freq = 100000000;
   _REG32(uart_reg, UART_REG_TXCTRL) = UART_TXEN;
   _REG32(uart_reg, UART_REG_RXCTRL) = UART_RXEN;
+  kputs("EARLY BOOT\r\n");
   
   // 2. Get tl_clk 
-  nodeoffset = fdt_path_offset((void*)dtb, "/soc/subsystem_pbus_clock");
+  nodeoffset = fdt_path_offset((void*)dtb, "/soc/pbus_clock");
   if (nodeoffset < 0) {
-    kputs("\r\nCannot find '/soc/subsystem_pbus_clock'\r\nAborting...");
-    while(1);
+    kputs("\r\nCannot find '/soc/pbus_clock'\r\nAssuming 100M...\r\n");
+    tlclk_freq = 100000000;
   }
   val = fdt_getprop((void*)dtb, nodeoffset, "clock-frequency", &len);
   if(!val || len < sizeof(fdt32_t)) {
-    kputs("\r\nThere is no clock-frequency in '/soc/subsystem_pbus_clock'\r\nAborting...");
-    while(1);
+    kputs("\r\nThere is no clock-frequency in '/soc/pbus_clock'\r\nAssuming 100M...\r\n");
+    tlclk_freq = 100000000;
   }
   if (len > sizeof(fdt32_t)) val++;
   tlclk_freq = fdt32_to_cpu(*val);
   _REG32(uart_reg, UART_REG_DIV) = uart_min_clk_divisor(tlclk_freq, 115200);
   
   // 3. Get the mem_size
-  nodeoffset = fdt_path_offset((void*)dtb, "/memory");
+  nodeoffset = fdt_path_offset((void*)dtb, "/memory@80000000");
   if (nodeoffset < 0) {
     kputs("\r\nCannot find '/memory'\r\nAborting...");
     while(1);
@@ -454,9 +461,10 @@ int main(int id, unsigned long dtb)
 	// Pack the FDT and place the data after it
 	fdt_pack((void*)dtb_target);
 
+  test();
 
   // TODO: From this point, insert any code
-  kputs("\r\n\n\nWelcome! Hello world!\r\n\n");
+  //kputs("\r\n\n\nWelcome! Hello world!\r\n\n");
   
   // If finished, stay in a infinite loop
   while(1);
