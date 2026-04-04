@@ -11,6 +11,7 @@
 #include <stdatomic.h>
 #include "libfdt/libfdt.h"
 #include "uart/uart.h"
+#include "htif/htif.h"
 #include <kprintf/kprintf.h>
 #include <stdio.h>
 
@@ -32,9 +33,10 @@ plic_instance_t g_plic;// Instance data for the PLIC.
 void boot_fail(long code, int trap)
 {
   kputs("BOOT FAILED\r\nCODE: ");
-  uart_put_hex((void*)uart_reg, code);
+  kput_hex(code);
   kputs("\r\nTRAP: ");
-  uart_put_hex((void*)uart_reg, trap);
+  kput_hex(trap);
+  htif_exit(1);
   while(1);
 }
 
@@ -285,6 +287,15 @@ int main(int id, unsigned long dtb)
   int err = 0;
   int len;
 	const fdt32_t *val;
+
+  // Check first for the htif
+  nodeoffset = fdt_path_offset((void*)dtb, "/htif");
+  if (nodeoffset >= 0) {
+    is_htif = 1;
+    tlclk_freq = 100000000;
+    timescale_freq = 100000;
+    goto skip_boot;
+  }
   
   // 1. Get the uart reg
   nodeoffset = fdt_path_offset((void*)dtb, "/soc/serial");
@@ -461,13 +472,14 @@ int main(int id, unsigned long dtb)
 	// Pack the FDT and place the data after it
 	fdt_pack((void*)dtb_target);
 
+skip_boot:
   test();
 
   // TODO: From this point, insert any code
   //kputs("\r\n\n\nWelcome! Hello world!\r\n\n");
   
   // If finished, stay in a infinite loop
-  while(1);
+  //while(1);
 
   //dead code
   return 0;

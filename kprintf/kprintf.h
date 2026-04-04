@@ -20,6 +20,8 @@
 extern void kputc(char);
 extern void kputs(const char *);
 extern void kprintf(const char *, ...);
+extern void kput_hex(uint32_t hex);
+extern unsigned int is_htif;
 
 #ifdef DEBUG
 #define dprintf(s, ...)	kprintf((s), ##__VA_ARGS__)

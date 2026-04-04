@@ -2,6 +2,9 @@
 #include <kprintf/kprintf.h>
 #include <clkutils/clkutils.h>
 
+// Run on simulation using: 
+// make run-binary-debug CONFIG=TomohiroConfig BINARY=~/Documents/RISCVConsoleCode/build/out.elf LOADMEM=1 TIMEOUT_CYCLES=0
+
 uint32_t vec [0x17][12] = {
    {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0},
    {0x05feee15, 0xc6801965, 0xb4e45849, 0xbcb45328, 0x9b88b47b, 0x0c7aed40, 0x98cf2d5f, 0x094f09db, 0xe1540001, 0x4eac0000, 0x46010000, 0x00005555, },
@@ -85,7 +88,7 @@ void init_pusher(uint32_t addr) {
     // NOTHING
     pusher[(SERIALPUSHER_REG_SCKDIV >> 2)] = 10;
     pusher[(SERIALPUSHER_REG_SCKMODE >> 2)] = SERIALPUSHER_SCK_POL;
-    pusher[(SERIALPUSHER_REG_CSMODE >> 2)] = 0; // 0 Auto, 1 Hold, 2 Off
+    pusher[(SERIALPUSHER_REG_CSMODE >> 2)] = 0; // 0 Auto, 2 Hold, 3 Off
 }
 
 void pusher_flush_rxfifo(uint32_t addr) {
@@ -100,7 +103,7 @@ void pusher_flush_rxfifo(uint32_t addr) {
 
 void pusher_dummy(uint32_t addr) {
     //kputs("DEBUG: Entering pusher_dummy\r\n");
-    pusher[(SERIALPUSHER_REG_CSMODE >> 2)] = 2; // Do not csx down
+    pusher[(SERIALPUSHER_REG_CSMODE >> 2)] = 3; // Do not csx down
 
     for(int i = 0; i < (TOTALITEMS+1); i++) {
         pusher[(SERIALPUSHER_REG_TXFIFO >> 2) + TOTALITEMS - i] = 0;
@@ -286,10 +289,11 @@ void test() {
 
         kputs("Done\r\n");
 
+        if(is_htif) break;
+
         // Wait for 1000 ms 
         clkutils_delay_ns(1000000000, 1000000000 / timescale_freq);
 
         //test_2();
     }
-
 }

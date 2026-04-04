@@ -105,11 +105,11 @@ _start:
   call main
   tail exit
 
-.globl abort
+.weak abort
 abort:
   li 	a0, -1
 
-.globl exit
+.weak exit
 exit:
   beqz	a0, _pass
   mv	t3, a0
@@ -120,7 +120,7 @@ _fail:
   add 	a0, a0, t1
   sw	a0, 0(t0) # 4000
 1:
-  j 1b  // loop (0x8000128
+  j 1b  // loop
 _pass:
   fence
   lui	t0, 0x4
@@ -288,3 +288,10 @@ trap_entry:
   csrr  t0,mcause
   add   a0,zero,t0
   j     _fail
+.section ".tohost","aw",@progbits
+.align 6
+.globl tohost
+tohost: .dword 0
+.align 6
+.globl fromhost
+fromhost: .dword 0

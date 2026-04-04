@@ -6,14 +6,22 @@
 #include "kprintf.h"
 #include <uart/uart.h>
 #include "src/main.h"
+#include "htif/htif.h"
+
+unsigned int is_htif = 0;
 
 inline void kputc(char c)
 {
-	uart_putc((void*) uart_reg, c);
+	if(is_htif) htif_putchar(c);
+	else uart_putc((void*) uart_reg, c);
 }
 
 static inline void _kputs(const char *s)
 {
+	/*if(is_htif) {
+		htif_printstr(s);
+		return;
+	}*/
 	char c;
 	for (; (c = *s) != '\0'; s++)
 		kputc(c);
@@ -133,4 +141,12 @@ void kprintf(const char *fmt, ...)
 		}
 	}
 	va_end(vl);
+}
+
+void kput_hex(uint32_t hex) {
+  int num_nibbles = sizeof(hex) * 2;
+  for (int nibble_idx = num_nibbles - 1; nibble_idx >= 0; nibble_idx--) {
+    char nibble = (hex >> (nibble_idx * 4)) & 0xf;
+    kputc((nibble < 0xa) ? ('0' + nibble) : ('a' + nibble - 0xa));
+  }
 }

@@ -30,6 +30,7 @@ LIB_FS_O= \
 	$(BUILD_DIR)/version.o \
 	clkutils/clkutils.o \
 	kprintf/kprintf.o \
+	htif/htif.o \
 	plic/plic_driver.o \
 	i2c/driver.o \
 	lib/memcpy.o \
