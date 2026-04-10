@@ -3,7 +3,7 @@
 #include <clkutils/clkutils.h>
 
 // Run on simulation using: 
-// make run-binary-debug CONFIG=TomohiroConfig BINARY=~/Documents/RISCVConsoleCode/build/out.elf LOADMEM=1 TIMEOUT_CYCLES=0
+// make run-binary-debug CONFIG=TomohiroConfig BINARY=~/Documents/RISCVConsoleCode/build/out.elf LOADMEM=1 TIMEOUT_CYCLES=0 EXTRA_SIM_PREPROC_DEFINES="+define+UNIT_DELAY=1"
 
 uint32_t vec [0x17][12] = {
    {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0},
@@ -86,7 +86,7 @@ static volatile uint32_t* pusher = (uint32_t*)0x10051000;
 
 void init_pusher(uint32_t addr) {
     // NOTHING
-    pusher[(SERIALPUSHER_REG_SCKDIV >> 2)] = 10;
+    pusher[(SERIALPUSHER_REG_SCKDIV >> 2)] = 5;
     pusher[(SERIALPUSHER_REG_SCKMODE >> 2)] = SERIALPUSHER_SCK_POL;
     pusher[(SERIALPUSHER_REG_CSMODE >> 2)] = 0; // 0 Auto, 2 Hold, 3 Off
 }
