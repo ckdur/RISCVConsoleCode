@@ -3,7 +3,10 @@
 #include <clkutils/clkutils.h>
 
 // Run on simulation using: 
-// make run-binary-debug CONFIG=TomohiroConfig BINARY=~/Documents/RISCVConsoleCode/build/out.elf LOADMEM=1 TIMEOUT_CYCLES=0 EXTRA_SIM_PREPROC_DEFINES="+define+UNIT_DELAY=1"
+// make -C sims/vcs run-binary-debug CONFIG=TomohiroConfig BINARY=~/Documents/RISCVConsoleCode/build/out.elf LOADMEM=1 TIMEOUT_CYCLES=0 EXTRA_SIM_PREPROC_DEFINES="+define+UNIT_DELAY=1"
+
+// To implement in FPGA for measurements
+// make -C fpga SUB_PROJECT=vcu108 CONFIG=RocketDuranVCU108Config bitstream
 
 uint32_t vec [0x17][12] = {
    {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0},
