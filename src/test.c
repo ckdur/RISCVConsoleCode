@@ -4,6 +4,8 @@
 
 // Run on simulation using: 
 // make -C sims/vcs run-binary-debug CONFIG=TomohiroConfig BINARY=~/Documents/RISCVConsoleCode/build/out.elf LOADMEM=1 TIMEOUT_CYCLES=0 EXTRA_SIM_PREPROC_DEFINES="+define+UNIT_DELAY=1"
+// make -C sims/verilator run-binary-debug CONFIG=TomohiroConfig BINARY=~/Documents/RISCVConsoleCode/build/out.elf LOADMEM=1 TIMEOUT_CYCLES=0 EXTRA_SIM_PREPROC_DEFINES="+define+UNIT_DELAY=1" USE_FST=1
+// make -C sims/verilator run-binary-debug CONFIG=CryptoMCUConfig BINARY=~/Documents/IKEDA_LAB/RISCVConsoleCode/build/out.elf LOADMEM=1 TIMEOUT_CYCLES=0 EXTRA_SIM_PREPROC_DEFINES="+define+UNIT_DELAY=1" USE_FST=1
 
 // To implement in FPGA for measurements
 // make -C fpga SUB_PROJECT=vcu108 CONFIG=RocketDuranVCU108Config bitstream
@@ -85,7 +87,10 @@ void read_pusher(uint32_t addr, uint32_t *data) {
 #else // Full pusher
 
 #include "serial_pusher.h"
-static volatile uint32_t* pusher = (uint32_t*)0x10051000;
+volatile uint32_t* pusher = (uint32_t*)0x0;
+volatile uint32_t* bls12381_ctrl = (uint32_t*)0x0;
+volatile uint32_t* bls12381_imem = (uint32_t*)0x0;
+volatile uint32_t* bls12381_omem = (uint32_t*)0x0;
 
 void init_pusher(uint32_t addr) {
     // NOTHING
@@ -218,34 +223,49 @@ void test_2() {
 void test() {
     kputs("\r\n\n\nDoing the Tomohiro (R) test!\r\n\n");
     uint32_t buf[12];
+    int count;
 
-    if(0) {
-
-        // Trigger
-        write_pusher(0x0, start);
-
-        read_pusher(0x1, buf);
-
-        int trig = 0;
-        for(int i = 0; i < TOTALITEMS; i++) {
-            if(buf[i] != 0) {
-                trig = 1;
+    while(bls12381_ctrl && bls12381_imem && bls12381_omem) {
+        for(int j = 0; j < 0x17; j++) {
+            for(int i = 0; i < TOTALITEMS; i++) {
+                bls12381_imem[j*16 + i] = vec[j][i];
             }
         }
-        if(trig) {
+        kputs("Doing triggers\r\n");
+        bls12381_ctrl[0x000 >> 2] = 0x1;
+        count = 0;
+        while(1) {
+            if(!(bls12381_ctrl[0x004 >> 2] & 1)) break;
+            kputs("WAITING\r\n");
+            if(count++ > 10) return;
+        }
+
+        bls12381_ctrl[0x000 >> 2] = 0x3;
+        count = 0;
+        while(1) {
+            if(!(bls12381_ctrl[0x004 >> 2] & 1)) break;
+            kputs("WAITING2\r\n");
+            if(count++ > 10) return;
+        }
+
+        for(int j = 0; j < 0xC; j++) {
+            kprintf("Reading omem(%x)\r\n", j);
+            
             for(int i = 0; i < TOTALITEMS; i++) {
-                kprintf("%x", buf[i]);
+                kprintf("%x", bls12381_omem[j*16 + i]);
             }
             kputs("\r\n");
-
-            kputs("Done\r\n");
-
-            // Wait for 1000 ms 
-            clkutils_delay_ns(1000000000, 1000000000 / timescale_freq);
         }
+
+        kputs("Done\r\n");
+
+        if(is_htif) break;
+
+        // Wait for 1000 ms 
+        clkutils_delay_ns(1000000000, 1000000000 / timescale_freq);
     }
 
-    while(1) {
+    while(pusher) {
         for(uint32_t j = 0; j < 0x17; j++) {
             kprintf("Writing address: %x\r\n", j+0x100);
             write_pusher(j + 0x100, vec[j]);
@@ -257,27 +277,26 @@ void test() {
         write_pusher(0x0, start);
 
         // Wait for busy
+        count = 0;
         while(1) {
             read_pusher(0x1, buf);
 
-            for(int i = 0; i < TOTALITEMS; i++) {
-                kprintf("%x", buf[i]);
-            }
-            kputs("\r\n");
-
             if(!(buf[11] & 1)) break;
             kputs("WAITING\r\n");
+            if(count++ > 10) return;
         }
 
         // Trigger
         write_pusher(0x0, start2);
 
         // Wait for busy
+        count = 0;
         while(1) {
             read_pusher(0x1, buf);
 
             if(!(buf[11] & 1)) break;
             kputs("WAITING2\r\n");
+            if(count++ > 10) return;
         }
 
         for(uint32_t j = 0; j < 0xC; j++) {
