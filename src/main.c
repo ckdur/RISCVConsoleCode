@@ -481,6 +481,21 @@ skip_boot:
       bls12381_imem = (uint32_t*)(uint64_t)fdt32_to_cpu(*prop_addr++); prop_addr++; // Skips the size
     }
   }
+  nodeoffset = fdt_node_offset_by_compatible((void*)dtb_target, 0, "toudai,dilithium");
+  if (nodeoffset < 0) {
+    kputs("\r\nCannot find compatible 'toudai,dilithium'\r\n");
+  } else {
+    const fdt32_t *prop_addr = fdt_getprop((void*)dtb, nodeoffset, "reg", &len);
+    if (!prop_addr) {
+      kputs("\r\nCannot get reg space from 'toudai,dilithium'\r\n");
+    } else {
+      dilithium_pk_mem = (uint32_t*)(uint64_t)fdt32_to_cpu(*prop_addr++); prop_addr++; // Skips the size
+      dilithium_ctrl = (uint32_t*)(uint64_t)fdt32_to_cpu(*prop_addr++); prop_addr++; // Skips the size
+      dilithium_sign_mem = (uint32_t*)(uint64_t)fdt32_to_cpu(*prop_addr++); prop_addr++; // Skips the size
+      dilithium_msg_mem = (uint32_t*)(uint64_t)fdt32_to_cpu(*prop_addr++); prop_addr++; // Skips the size
+      dilithium_sk_mem = (uint32_t*)(uint64_t)fdt32_to_cpu(*prop_addr++); prop_addr++; // Skips the size
+    }
+  }
   nodeoffset = fdt_node_offset_by_compatible((void*)dtb_target, 0, "toudai,serialpusher0");
   if (nodeoffset < 0) {
     kputs("\r\nCannot find compatible 'toudai,serialpusher0'\r\n");

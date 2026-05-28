@@ -92,6 +92,12 @@ volatile uint32_t* bls12381_ctrl = (uint32_t*)0x0;
 volatile uint32_t* bls12381_imem = (uint32_t*)0x0;
 volatile uint32_t* bls12381_omem = (uint32_t*)0x0;
 
+volatile uint32_t* dilithium_ctrl = (uint32_t*)0x0;
+volatile uint32_t* dilithium_sign_mem = (uint32_t*)0x0;
+volatile uint32_t* dilithium_pk_mem = (uint32_t*)0x0;
+volatile uint32_t* dilithium_sk_mem = (uint32_t*)0x0;
+volatile uint32_t* dilithium_msg_mem = (uint32_t*)0x0;
+
 void init_pusher(uint32_t addr) {
     // NOTHING
     pusher[(SERIALPUSHER_REG_SCKDIV >> 2)] = 5;
@@ -155,77 +161,25 @@ void read_pusher(uint32_t addr, uint32_t *data) {
 }
 #endif
 
-void test_2() {
-    kputs("\r\n\n\nDoing the Tomohiro (R) test!\r\n\n");
-
-    while(1) {
-        for(uint32_t j = 0; j < 0xFFFFFF; j++) {
-            uint32_t buf[12] = {
-                0xDEADBEEF,
-                0x00ABCDEF,
-                0x00080085,
-                0xADADADAD,
-                0x12345678,
-                0x87654321,
-                0xF001F001,
-                0x44444444,
-                0x88888888,
-                0x00000000,
-                0x11111111,
-                0xFAFAFAFA
-            };
-            kprintf("Doing address: %x\r", j);
-
-            write_pusher(j, buf);
-
-            int trig = 0;
-            for(int i = 0; i < TOTALITEMS; i++) {
-                if(pusher[(0x400 >> 2) + 1 + i] != 0) {
-                    trig = 1;
-                }
-            }
-            
-            if(trig) 
-            {   
-                kputs("\r\nDEBUG: must be 0x0!\r\n  ");
-                for(int i = 0; i < TOTALITEMS; i++) {
-                    kprintf("%x", pusher[(0x400 >> 2) + 1 + i]);
-                }
-                kputs("\r\n");
-            }
-
-            read_pusher(j, buf);
-
-
-            trig = 0;
-            for(int i = 0; i < TOTALITEMS; i++) {
-                if(buf[i] != 0) {
-                    trig = 1;
-                }
-            }
-            if(trig) {
-                kputs("\r\nResults of the read:\r\n  ");
-                for(int i = 0; i < TOTALITEMS; i++) {
-                    kprintf("%x", buf[i]);
-                }
-                kputs("\r\n");
-            }
-
-            // Wait for 500 ms 
-            //clkutils_delay_ns(500000000, 1000000000 / timescale_freq);
-        }
-
-        kputs("Done\r\n");
-    }
-
-}
-
 void test() {
-    kputs("\r\n\n\nDoing the Tomohiro (R) test!\r\n\n");
     uint32_t buf[12];
     int count;
 
+    while(dilithium_ctrl && dilithium_msg_mem && dilithium_sign_mem && dilithium_pk_mem && dilithium_sk_mem) {
+        kputs("Dilithium (on-chip) test!\r\n");
+
+        // TODO: Ask for test vectors
+
+        kputs("Done\r\n");
+
+        if(is_htif) break;
+
+        // Wait for 1000 ms 
+        clkutils_delay_ns(1000000000, 1000000000 / timescale_freq);
+    }
+
     while(bls12381_ctrl && bls12381_imem && bls12381_omem) {
+        kputs("BLS 12 384 (on-chip) test!\r\n");
         for(int j = 0; j < 0x17; j++) {
             for(int i = 0; i < TOTALITEMS; i++) {
                 bls12381_imem[j*16 + i] = vec[j][i];
@@ -266,6 +220,7 @@ void test() {
     }
 
     while(pusher) {
+        kputs("BLS 12 384 (pusher) test!\r\n");
         for(uint32_t j = 0; j < 0x17; j++) {
             kprintf("Writing address: %x\r\n", j+0x100);
             write_pusher(j + 0x100, vec[j]);
@@ -315,7 +270,5 @@ void test() {
 
         // Wait for 1000 ms 
         clkutils_delay_ns(1000000000, 1000000000 / timescale_freq);
-
-        //test_2();
     }
 }
