@@ -509,15 +509,29 @@ skip_boot:
       pusher = (uint32_t*)serialpusher_reg;
     }
   }
+  // See if there is an external chip connection
+  nodeoffset = fdt_path_offset((void*)dtb_target, "/soc/lbwif-readwrite");
+  if (nodeoffset >= 0) {
+    const fdt32_t *prop_addr = fdt_getprop((void*)dtb, nodeoffset, "reg", &len);
+    if (!prop_addr) {
+      kputs("\r\nCannot get reg space from 'lbwif-readwrite'\r\n");
+    }
+    else {
+      // So, we assign according to the obtained register
+      uint64_t lbwif_reg = (uint64_t)fdt32_to_cpu(*prop_addr++);
+      
+      bls12381_ctrl = (uint32_t*)(lbwif_reg + 0x52000);
+      bls12381_imem = (uint32_t*)(lbwif_reg + 0x53000);
+      bls12381_omem = (uint32_t*)(lbwif_reg + 0x54000);
+      dilithium_pk_mem = (uint32_t*)(lbwif_reg + 0x55000);
+      dilithium_ctrl = (uint32_t*)(lbwif_reg + 0x56000);
+      dilithium_sign_mem = (uint32_t*)(lbwif_reg + 0x58000);
+      dilithium_msg_mem = (uint32_t*)(lbwif_reg + 0x5A000);
+      dilithium_sk_mem = (uint32_t*)(lbwif_reg + 0x5C000);
+    }
+  }
   test();
 
-  // TODO: From this point, insert any code
-  //kputs("\r\n\n\nWelcome! Hello world!\r\n\n");
-  
-  // If finished, stay in a infinite loop
-  //while(1);
-
-  //dead code
   return 0;
 }
 
