@@ -74,17 +74,17 @@ void test() {
         put_gpio(2, 0);
 
         // Trigger all the resets
-        put_gpio(0, 1);
+        put_gpio(0, 0);
         put_gpio(5, 0);
 
         // Release the shift register only
-        //put_gpio(0, 1);
+        put_gpio(0, 1);
 
         // Push something
         spi_pll[(SPI_REG_CSMODE >> 2)] = SPI_CSMODE_HOLD;
         uint8_t back;
         for(int i = 0; i < spi_config_siz; i++) 
-            back = spi_xfer(spi_pll, 0xff);
+            back = spi_xfer(spi_pll, spi_config[i]);
         spi_pll[(SPI_REG_CSMODE >> 2)] = SPI_CSMODE_AUTO;
         
         if(back != spi_config[0]) {
