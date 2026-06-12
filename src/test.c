@@ -65,7 +65,7 @@ static inline int get_gpio(int i) {
 }
 
 void test() {
-    if(spi_pll) {
+    if(spi_pll && gpio) {
         gpio[(GPIO_INPUT_EN >> 2)] = (1 << 1) | (1 << 3) | (1 << 4) | (1 << 6);
         gpio[(GPIO_OUTPUT_EN >> 2)] = (1 << 0) | (1 << 2) | (1 << 5);
         gpio[(GPIO_PULLUP_EN >> 2)] = 0;
