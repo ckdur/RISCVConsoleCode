@@ -21,6 +21,9 @@
 
 // To implement in FPGA for measurements
 // make -C fpga SUB_PROJECT=vcu108 CONFIG=RocketDuranVCU108Config bitstream
+// make -C fpga SUB_PROJECT=vcu108 CONFIG=RocketDuran40MHzVCU108Config bitstream
+// make -C fpga SUB_PROJECT=vcu108 CONFIG=RocketDuran50MHzVCU108Config bitstream
+// make -C fpga SUB_PROJECT=vcu108 CONFIG=RocketDuran100MHzVCU108Config bitstream
 
 void test() {
     dilithium_test();
