@@ -18,7 +18,7 @@ endif
 
 CFLAGS=$(CFLAGS_ARCH) -mcmodel=medany -O1 -std=gnu11 -Wall -nostartfiles 
 CFLAGS+= -fno-common -g -DENTROPY=0 -DNONSMP_HART=0 
-CFLAGS+= -I $(BOOTROM_DIR)/include -I. -I./src -I./kprintf -I./lib -I./clkutils -I./libfdt $(ADD_OPTS)
+CFLAGS+= -I $(BOOTROM_DIR)/include -I. -I./src -I./kprintf -I./lib -I./clkutils -I./libfdt -I./spi $(ADD_OPTS)
 LFLAGS=-static -nostdlib --specs=nosys.specs -L $(BOOTROM_DIR)/linker -T memory.lds -T link.lds
 BUILD_DIR?=$(abspath ./build)
 
@@ -35,6 +35,7 @@ LIB_FS_O= \
 	htif/htif.o \
 	plic/plic_driver.o \
 	i2c/driver.o \
+	spi/spi.o \
 	lib/memcpy.o \
 	lib/memset.o \
 	lib/strcmp.o \

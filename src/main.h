@@ -18,6 +18,10 @@ extern volatile uint32_t* dilithium_pk_mem;
 extern volatile uint32_t* dilithium_sk_mem;
 extern volatile uint32_t* dilithium_msg_mem;
 
+extern volatile uint32_t* spi_pll;
+
+extern volatile uint32_t* gpio;
+
 void test();
 
 #endif // _MAIN_H

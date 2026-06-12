@@ -15,7 +15,7 @@
 #include <kprintf/kprintf.h>
 #include <stdio.h>
 
-#include <platform.h>
+#include "platform.h"
 #include <stdatomic.h>
 #include <plic/plic_driver.h>
 
@@ -528,6 +528,21 @@ skip_boot:
       dilithium_sign_mem = (uint32_t*)(lbwif_reg + 0x58000);
       dilithium_msg_mem = (uint32_t*)(lbwif_reg + 0x5A000);
       dilithium_sk_mem = (uint32_t*)(lbwif_reg + 0x5C000);
+    }
+  }
+  nodeoffset = fdt_node_offset_by_compatible((void*)dtb_target, 0, "sifive,gpio0");
+  if (nodeoffset < 0) {
+    kputs("\r\nCannot find compatible 'toudai,dilithium'\r\n");
+  } else {
+    const fdt32_t *prop_addr = fdt_getprop((void*)dtb, nodeoffset, "reg", &len);
+    if (!prop_addr) {
+      kputs("\r\nCannot get reg space from 'toudai,dilithium'\r\n");
+    } else {
+      dilithium_pk_mem = (uint32_t*)(uint64_t)fdt32_to_cpu(*prop_addr++); prop_addr++; // Skips the size
+      dilithium_ctrl = (uint32_t*)(uint64_t)fdt32_to_cpu(*prop_addr++); prop_addr++; // Skips the size
+      dilithium_sign_mem = (uint32_t*)(uint64_t)fdt32_to_cpu(*prop_addr++); prop_addr++; // Skips the size
+      dilithium_msg_mem = (uint32_t*)(uint64_t)fdt32_to_cpu(*prop_addr++); prop_addr++; // Skips the size
+      dilithium_sk_mem = (uint32_t*)(uint64_t)fdt32_to_cpu(*prop_addr++); prop_addr++; // Skips the size
     }
   }
   test();
