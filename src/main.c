@@ -472,7 +472,7 @@ skip_boot:
   if (nodeoffset < 0) {
     kputs("\r\nCannot find compatible 'toudai,bls_12_381'\r\n");
   } else {
-    const fdt32_t *prop_addr = fdt_getprop((void*)dtb, nodeoffset, "reg", &len);
+    const fdt32_t *prop_addr = fdt_getprop((void*)dtb_target, nodeoffset, "reg", &len);
     if (!prop_addr) {
       kputs("\r\nCannot get reg space from 'toudai,bls_12_381'\r\n");
     } else {
@@ -485,7 +485,7 @@ skip_boot:
   if (nodeoffset < 0) {
     kputs("\r\nCannot find compatible 'toudai,dilithium'\r\n");
   } else {
-    const fdt32_t *prop_addr = fdt_getprop((void*)dtb, nodeoffset, "reg", &len);
+    const fdt32_t *prop_addr = fdt_getprop((void*)dtb_target, nodeoffset, "reg", &len);
     if (!prop_addr) {
       kputs("\r\nCannot get reg space from 'toudai,dilithium'\r\n");
     } else {
@@ -502,9 +502,9 @@ skip_boot:
   }
   else {
     unsigned long serialpusher_reg;
-    err = fdt_get_node_addr_size((void*)dtb, nodeoffset, &serialpusher_reg, NULL, soc, cell_size, cell_addr);
+    err = fdt_get_node_addr_size((void*)dtb_target, nodeoffset, &serialpusher_reg, NULL, soc, cell_size, cell_addr);
     if (err < 0) {
-      kputs("\r\nCannot get reg space from 'toudai,serialpusher0'\r\nAborting...");
+      kprintf("\r\nCannot get reg space from 'toudai,serialpusher0'\r\nError %d", err);
     } else {
       pusher = (uint32_t*)serialpusher_reg;
     }
@@ -512,7 +512,7 @@ skip_boot:
   // See if there is an external chip connection
   nodeoffset = fdt_path_offset((void*)dtb_target, "/soc/lbwif-readwrite");
   if (nodeoffset >= 0) {
-    const fdt32_t *prop_addr = fdt_getprop((void*)dtb, nodeoffset, "reg", &len);
+    const fdt32_t *prop_addr = fdt_getprop((void*)dtb_target, nodeoffset, "reg", &len);
     if (!prop_addr) {
       kputs("\r\nCannot get reg space from 'lbwif-readwrite'\r\n");
     }
@@ -534,9 +534,9 @@ skip_boot:
   if (nodeoffset < 0) {
     kputs("\r\nCannot find compatible 'sifive,gpio0'\r\n");
   } else {
-    const fdt32_t *prop_addr = fdt_getprop((void*)dtb, nodeoffset, "reg", &len);
+    const fdt32_t *prop_addr = fdt_getprop((void*)dtb_target, nodeoffset, "reg", &len);
     if (!prop_addr) {
-      kputs("\r\nCannot get reg space from 'sifive,gpio0'\r\n");
+      kprintf("\r\nCannot get reg space from 'sifive,gpio0'\r\nError %d", err);
     } else {
       gpio = (uint32_t*)(uint64_t)fdt32_to_cpu(*prop_addr++); prop_addr++;
     }

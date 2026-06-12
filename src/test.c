@@ -65,7 +65,7 @@ static inline int get_gpio(int i) {
 }
 
 void test() {
-    if(spi_pll && gpio) {
+    while(spi_pll && gpio) {
         gpio[(GPIO_INPUT_EN >> 2)] = (1 << 1) | (1 << 3) | (1 << 4) | (1 << 6);
         gpio[(GPIO_OUTPUT_EN >> 2)] = (1 << 0) | (1 << 2) | (1 << 5);
         gpio[(GPIO_PULLUP_EN >> 2)] = 0;
@@ -74,20 +74,23 @@ void test() {
         put_gpio(2, 0);
 
         // Trigger all the resets
-        put_gpio(0, 0);
+        put_gpio(0, 1);
         put_gpio(5, 0);
 
         // Release the shift register only
-        put_gpio(0, 1);
+        //put_gpio(0, 1);
 
         // Push something
+        spi_pll[(SPI_REG_CSMODE >> 2)] = SPI_CSMODE_HOLD;
         uint8_t back;
         for(int i = 0; i < spi_config_siz; i++) 
-            back = spi_xfer(spi_pll, spi_config[i]);
+            back = spi_xfer(spi_pll, 0xff);
+        spi_pll[(SPI_REG_CSMODE >> 2)] = SPI_CSMODE_AUTO;
         
         if(back != spi_config[0]) {
             // Failed signature
-            kputs("Failed signature in the SPI config");
+            kprintf("Failed signature in the SPI config (%x)\r\n", (unsigned int) back);
+            continue;
         }
         
         // Release the PLL reset
@@ -97,7 +100,7 @@ void test() {
         int locked, err;
         do {
             locked = get_gpio(4);
-            err = get_gpio(4);
+            err = get_gpio(3);
         } while (!locked && !err);
 
         if(!err) {
@@ -105,8 +108,9 @@ void test() {
             put_gpio(2, 1);
         }
         else {
-            kputs("ERROR: PLL did not lock");
+            kputs("ERROR: PLL did not lock\r\n");
         }
+        break;
     }
     dilithium_test();
     bls12_381_test();
