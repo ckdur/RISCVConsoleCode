@@ -468,6 +468,7 @@ int main(int id, unsigned long dtb)
   fdt_pack((void*)dtb_target);
 
 skip_boot:
+#if 1  // Put this into zero for even faster boot. We just assume some locations later
   nodeoffset = fdt_node_offset_by_compatible((void*)dtb_target, 0, "toudai,bls_12_381");
   if (nodeoffset < 0) {
     kputs("\r\nCannot find compatible 'toudai,bls_12_381'\r\n");
@@ -547,7 +548,20 @@ skip_boot:
   } else {
     spi_pll = (uint32_t*)0x64004000;
   }
+#else
 
+  // Just skip all. Life is short to wait simulations to detect a freaking dts
+  kputs("\r\nSkipping all DTB detection\r\n");
+  uint64_t lbwif_reg = 0x20000000;
+  bls12381_ctrl = (uint32_t*)(lbwif_reg + 0x52000);
+  bls12381_imem = (uint32_t*)(lbwif_reg + 0x53000);
+  bls12381_omem = (uint32_t*)(lbwif_reg + 0x54000);
+  dilithium_pk_mem = (uint32_t*)(lbwif_reg + 0x55000);
+  dilithium_ctrl = (uint32_t*)(lbwif_reg + 0x56000);
+  dilithium_sign_mem = (uint32_t*)(lbwif_reg + 0x58000);
+  dilithium_msg_mem = (uint32_t*)(lbwif_reg + 0x5A000);
+  dilithium_sk_mem = (uint32_t*)(lbwif_reg + 0x5C000);
+#endif
   test();
 
   return 0;
