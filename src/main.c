@@ -255,6 +255,9 @@ unsigned long plic_reg;
 int plic_max_priority;
 int plic_ndevs;
 int timescale_freq;
+volatile uint32_t* clkpll = (uint32_t*)0;
+volatile uint32_t* clkmux = (uint32_t*)0;
+volatile uint32_t* clkdiv = (uint32_t*)0;
 
 //HART 0 runs main
 int main(int id, unsigned long dtb)
@@ -468,7 +471,7 @@ int main(int id, unsigned long dtb)
   fdt_pack((void*)dtb_target);
 
 skip_boot:
-#if 1  // Put this into zero for even faster boot. We just assume some locations later
+#if 0  // Put this into zero for even faster boot. We just assume some locations later
   nodeoffset = fdt_node_offset_by_compatible((void*)dtb_target, 0, "toudai,bls_12_381");
   if (nodeoffset < 0) {
     kputs("\r\nCannot find compatible 'toudai,bls_12_381'\r\n");
@@ -529,6 +532,9 @@ skip_boot:
       dilithium_sign_mem = (uint32_t*)(lbwif_reg + 0x58000);
       dilithium_msg_mem = (uint32_t*)(lbwif_reg + 0x5A000);
       dilithium_sk_mem = (uint32_t*)(lbwif_reg + 0x5C000);
+      div = (uint32_t*)(lbwif_reg + 0x20000);
+      sel = (uint32_t*)(lbwif_reg + 0x30000);
+      pll = (uint32_t*)(lbwif_reg + 0x40000);
     }
   }
   nodeoffset = fdt_node_offset_by_compatible((void*)dtb_target, 0, "sifive,gpio0");
@@ -553,15 +559,22 @@ skip_boot:
   // Just skip all. Life is short to wait simulations to detect a freaking dts
   kputs("\r\nSkipping all DTB detection\r\n");
   uint64_t lbwif_reg = 0x20000000;
-  bls12381_ctrl = (uint32_t*)(lbwif_reg + 0x52000);
-  bls12381_imem = (uint32_t*)(lbwif_reg + 0x53000);
-  bls12381_omem = (uint32_t*)(lbwif_reg + 0x54000);
+  //bls12381_ctrl = (uint32_t*)(lbwif_reg + 0x52000);
+  //bls12381_imem = (uint32_t*)(lbwif_reg + 0x53000);
+  //bls12381_omem = (uint32_t*)(lbwif_reg + 0x54000);
   dilithium_pk_mem = (uint32_t*)(lbwif_reg + 0x55000);
   dilithium_ctrl = (uint32_t*)(lbwif_reg + 0x56000);
   dilithium_sign_mem = (uint32_t*)(lbwif_reg + 0x58000);
   dilithium_msg_mem = (uint32_t*)(lbwif_reg + 0x5A000);
   dilithium_sk_mem = (uint32_t*)(lbwif_reg + 0x5C000);
+  clkdiv = (uint32_t*)(lbwif_reg + 0x20000);
+  clkmux = (uint32_t*)(lbwif_reg + 0x30000);
+  clkpll = (uint32_t*)(lbwif_reg + 0x40000);
 #endif
+
+  // Put the divider and the selector
+  clkdiv[0] = 0; // No dividing. Just the PLL
+  clkmux[0] = 1; // Choose the PLL
   test();
 
   return 0;
