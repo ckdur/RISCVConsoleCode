@@ -271,15 +271,8 @@ int main(int id, unsigned long dtb)
   uart_reg = 0x64000000;  // For early boot. Try to keep the uart here
   tlclk_freq = 100000000;
 
-  // Get the soc. Extract cell_size and cell_addr
-  soc = fdt_path_offset((void*)dtb, "/soc");
-  if (soc < 0) {
-    kputs("\r\nCannot find '/soc'\r\nAborting...");
-    while(1);
-  }
-
   // Check first for the htif
-  nodeoffset = fdt_path_offset((void*)dtb, "/htif");
+  nodeoffset = fdt_path_offset((void*)dtb, "/sim");
   if (nodeoffset >= 0) {
     is_htif = 1;
     tlclk_freq = 100000000;
@@ -288,6 +281,13 @@ int main(int id, unsigned long dtb)
     cell_addr = 1;
     cell_size = 1;
     goto skip_boot;
+  }
+
+  // Get the soc. Extract cell_size and cell_addr
+  soc = fdt_path_offset((void*)dtb, "/soc");
+  if (soc < 0) {
+    kputs("\r\nCannot find '/soc'\r\nAborting...");
+    while(1);
   }
 
   cell_addr = fdt_address_cells((void*)dtb, soc);
@@ -470,8 +470,6 @@ int main(int id, unsigned long dtb)
   // Pack the FDT and place the data after it
   fdt_pack((void*)dtb_target);
 
-skip_boot:
-#if 0  // Put this into zero for even faster boot. We just assume some locations later
   nodeoffset = fdt_node_offset_by_compatible((void*)dtb_target, 0, "toudai,bls_12_381");
   if (nodeoffset < 0) {
     kputs("\r\nCannot find compatible 'toudai,bls_12_381'\r\n");
@@ -524,17 +522,17 @@ skip_boot:
       // So, we assign according to the obtained register
       uint64_t lbwif_reg = (uint64_t)fdt32_to_cpu(*prop_addr++);
       
-      bls12381_ctrl = (uint32_t*)(lbwif_reg + 0x52000);
-      bls12381_imem = (uint32_t*)(lbwif_reg + 0x53000);
-      bls12381_omem = (uint32_t*)(lbwif_reg + 0x54000);
+      // bls12381_ctrl = (uint32_t*)(lbwif_reg + 0x52000);
+      // bls12381_imem = (uint32_t*)(lbwif_reg + 0x53000);
+      // bls12381_omem = (uint32_t*)(lbwif_reg + 0x54000);
       dilithium_pk_mem = (uint32_t*)(lbwif_reg + 0x55000);
       dilithium_ctrl = (uint32_t*)(lbwif_reg + 0x56000);
       dilithium_sign_mem = (uint32_t*)(lbwif_reg + 0x58000);
       dilithium_msg_mem = (uint32_t*)(lbwif_reg + 0x5A000);
       dilithium_sk_mem = (uint32_t*)(lbwif_reg + 0x5C000);
-      div = (uint32_t*)(lbwif_reg + 0x20000);
-      sel = (uint32_t*)(lbwif_reg + 0x30000);
-      pll = (uint32_t*)(lbwif_reg + 0x40000);
+      clkdiv = (uint32_t*)(lbwif_reg + 0x20000);
+      clkmux = (uint32_t*)(lbwif_reg + 0x30000);
+      clkpll = (uint32_t*)(lbwif_reg + 0x40000);
     }
   }
   nodeoffset = fdt_node_offset_by_compatible((void*)dtb_target, 0, "sifive,gpio0");
@@ -554,8 +552,9 @@ skip_boot:
   } else {
     spi_pll = (uint32_t*)0x64004000;
   }
-#else
+  goto testing;
 
+skip_boot:
   // Just skip all. Life is short to wait simulations to detect a freaking dts
   kputs("\r\nSkipping all DTB detection\r\n");
   uint64_t lbwif_reg = 0x20000000;
@@ -570,11 +569,11 @@ skip_boot:
   clkdiv = (uint32_t*)(lbwif_reg + 0x20000);
   clkmux = (uint32_t*)(lbwif_reg + 0x30000);
   clkpll = (uint32_t*)(lbwif_reg + 0x40000);
-#endif
 
+testing:
   // Put the divider and the selector
-  clkdiv[0] = 0; // No dividing. Just the PLL
-  clkmux[0] = 1; // Choose the PLL
+  if(clkdiv) clkdiv[0] = 0; // No dividing. Just the PLL
+  if(clkmux) clkmux[0] = 1; // Choose the PLL
   test();
 
   return 0;

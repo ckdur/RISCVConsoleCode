@@ -19,7 +19,7 @@ endif
 CFLAGS=$(CFLAGS_ARCH) -mcmodel=medany -O1 -std=gnu11 -Wall -nostartfiles 
 CFLAGS+= -fno-common -g -DENTROPY=0 -DNONSMP_HART=0 
 CFLAGS+= -I $(BOOTROM_DIR)/include -I. -I./src -I./kprintf -I./lib -I./clkutils -I./libfdt -I./spi $(ADD_OPTS)
-LFLAGS=-static -nostdlib --specs=nosys.specs -L $(BOOTROM_DIR)/linker -T memory.lds -T link.lds
+LFLAGS=-static -nostdlib --specs=nosys.specs -L $(BOOTROM_DIR)/linker -T memory.lds
 BUILD_DIR?=$(abspath ./build)
 
 LIB_FS_O= \
@@ -67,26 +67,29 @@ $(BUILD_DIR)/version.c:
 elf := $(BUILD_DIR)/out.elf
 $(elf): $(LIB_FS_O)
 	mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(LFLAGS) -o $@ $(LIB_FS_O) -lgcc -lm -lgcc -lc
+	$(CC) $(CFLAGS) $(LFLAGS) -T link.lds -o $@ $(LIB_FS_O) -lgcc -lm -lgcc -lc
 
-.PHONY: elf
-elf: $(elf)
+elf_qspi := $(BUILD_DIR)/out.qspi.elf
+$(elf_qspi): $(LIB_FS_O)
+	mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(LFLAGS) -T link.qspi.lds -o $@ $(LIB_FS_O) -lgcc -lm -lgcc -lc
 
 bin := $(BUILD_DIR)/out.bin
-$(bin): $(elf)
+bin_qspi := $(BUILD_DIR)/out.qspi.bin
+hex := $(BUILD_DIR)/out.hex
+hex_qspi := $(BUILD_DIR)/out.qspi.hex
+
+%.bin: %.elf
 	$(OBJCOPY) -O binary $< $@
 	$(OBJDUMP) -d $^ > $@.dump
 
-.PHONY: bin
-bin: $(bin)
-
-hex := $(BUILD_DIR)/out.hex
-$(hex): $(bin)
+%.hex: %.bin
 	od -t x4 -An -w4 -v $< > $@
 
-.PHONY: hex
-hex: $(hex)
+elf: $(elf) $(elf_qspi)
+bin: $(bin) $(bin_qspi)
+hex: $(hex) $(hex_qspi)
 
 .PHONY: clean
 clean::
-	rm -rf $(hex) $(elf) $(LIB_FS_O) build
+	rm -rf $(elf) $(elf_qspi) $(bin) $(bin_qspi) $(hex) $(hex_qspi) $(LIB_FS_O) build
