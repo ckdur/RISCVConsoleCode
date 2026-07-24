@@ -469,11 +469,11 @@ int main(int id, unsigned long dtb)
 
   // Pack the FDT and place the data after it
   fdt_pack((void*)dtb_target);
+  kputs("\r\n");
 
   nodeoffset = fdt_node_offset_by_compatible((void*)dtb_target, 0, "toudai,bls_12_381");
-  if (nodeoffset < 0) {
-    kputs("\r\nCannot find compatible 'toudai,bls_12_381'\r\n");
-  } else {
+  if (nodeoffset >= 0) {
+    kputs("Found 'toudai,bls_12_381'\r\n");
     const fdt32_t *prop_addr = fdt_getprop((void*)dtb_target, nodeoffset, "reg", &len);
     if (!prop_addr) {
       kputs("\r\nCannot get reg space from 'toudai,bls_12_381'\r\n");
@@ -484,9 +484,8 @@ int main(int id, unsigned long dtb)
     }
   }
   nodeoffset = fdt_node_offset_by_compatible((void*)dtb_target, 0, "toudai,dilithium");
-  if (nodeoffset < 0) {
-    kputs("\r\nCannot find compatible 'toudai,dilithium'\r\n");
-  } else {
+  if (nodeoffset >= 0) {
+    kputs("Found 'toudai,dilithium'\r\n");
     const fdt32_t *prop_addr = fdt_getprop((void*)dtb_target, nodeoffset, "reg", &len);
     if (!prop_addr) {
       kputs("\r\nCannot get reg space from 'toudai,dilithium'\r\n");
@@ -499,10 +498,8 @@ int main(int id, unsigned long dtb)
     }
   }
   nodeoffset = fdt_node_offset_by_compatible((void*)dtb_target, 0, "toudai,serialpusher0");
-  if (nodeoffset < 0) {
-    kputs("\r\nCannot find compatible 'toudai,serialpusher0'\r\n");
-  }
-  else {
+  if (nodeoffset >= 0) {
+    kputs("Found 'toudai,serialpusher0'\r\n");
     unsigned long serialpusher_reg;
     err = fdt_get_node_addr_size((void*)dtb_target, nodeoffset, &serialpusher_reg, NULL, soc, cell_size, cell_addr);
     if (err < 0) {
@@ -514,6 +511,7 @@ int main(int id, unsigned long dtb)
   // See if there is an external chip connection
   nodeoffset = fdt_path_offset((void*)dtb_target, "/soc/lbwif-readwrite");
   if (nodeoffset >= 0) {
+    kputs("Found '/soc/lbwif-readwrite'\r\n");
     const fdt32_t *prop_addr = fdt_getprop((void*)dtb_target, nodeoffset, "reg", &len);
     if (!prop_addr) {
       kputs("\r\nCannot get reg space from 'lbwif-readwrite'\r\n");
@@ -536,9 +534,8 @@ int main(int id, unsigned long dtb)
     }
   }
   nodeoffset = fdt_node_offset_by_compatible((void*)dtb_target, 0, "sifive,gpio0");
-  if (nodeoffset < 0) {
-    kputs("\r\nCannot find compatible 'sifive,gpio0'\r\n");
-  } else {
+  if (nodeoffset >= 0) {
+    kputs("Found 'sifive,gpio0'\r\n");
     const fdt32_t *prop_addr = fdt_getprop((void*)dtb_target, nodeoffset, "reg", &len);
     if (!prop_addr) {
       kprintf("\r\nCannot get reg space from 'sifive,gpio0'\r\nError %d", err);
@@ -547,9 +544,8 @@ int main(int id, unsigned long dtb)
     }
   }
   nodeoffset = fdt_path_offset((void*)dtb_target, "/soc/spi@64004000"); // TODO: Do a better version of this.
-  if (nodeoffset < 0) {
-    kputs("\r\nCannot find node '/soc/spi@64004000'\r\n");
-  } else {
+  if (nodeoffset >= 0) {
+    kputs("Found '/soc/spi@64004000'\r\n");
     spi_pll = (uint32_t*)0x64004000;
   }
   goto testing;
