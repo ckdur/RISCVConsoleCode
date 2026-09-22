@@ -17,6 +17,8 @@
 #include <string.h>
 #include <stdint.h>
 
+#define PREFER_SIZE_OVER_SPEED
+
 size_t strlen(const char *str)
 {
   const char *start = str;
