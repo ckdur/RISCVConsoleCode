@@ -298,14 +298,14 @@ int main(int id, unsigned long dtb)
   _REG32(uart_reg, UART_REG_RXCTRL) = UART_RXEN;
   
   // 2. Get tl_clk 
-  nodeoffset = fdt_path_offset((void*)dtb, "/soc/subsystem_pbus_clock");
+  nodeoffset = fdt_path_offset((void*)dtb, "/soc/pbus_clock");
   if (nodeoffset < 0) {
-    kputs("\r\nCannot find '/soc/subsystem_pbus_clock'\r\nAborting...");
+    kputs("\r\nCannot find '/soc/pbus_clock'\r\nAborting...");
     while(1);
   }
   val = fdt_getprop((void*)dtb, nodeoffset, "clock-frequency", &len);
   if(!val || len < sizeof(fdt32_t)) {
-    kputs("\r\nThere is no clock-frequency in '/soc/subsystem_pbus_clock'\r\nAborting...");
+    kputs("\r\nThere is no clock-frequency in '/soc/pbus_clock'\r\nAborting...");
     while(1);
   }
   if (len > sizeof(fdt32_t)) val++;
