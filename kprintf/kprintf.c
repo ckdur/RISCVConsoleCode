@@ -134,3 +134,19 @@ void kprintf(const char *fmt, ...)
 	}
 	va_end(vl);
 }
+
+void kput_hex(uint32_t hex) {
+  int num_nibbles = sizeof(hex) * 2;
+  for (int nibble_idx = num_nibbles - 1; nibble_idx >= 0; nibble_idx--) {
+    char nibble = (hex >> (nibble_idx * 4)) & 0xf;
+    kputc((nibble < 0xa) ? ('0' + nibble) : ('a' + nibble - 0xa));
+  }
+}
+
+void kput_hex8(uint8_t hex) {
+  int num_nibbles = sizeof(hex) * 2;
+  for (int nibble_idx = num_nibbles - 1; nibble_idx >= 0; nibble_idx--) {
+    char nibble = (hex >> (nibble_idx * 4)) & 0xf;
+    kputc((nibble < 0xa) ? ('0' + nibble) : ('a' + nibble - 0xa));
+  }
+}

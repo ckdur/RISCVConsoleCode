@@ -3,8 +3,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 /* See the file LICENSE for further information */
 
-#include "main.h"
-#include "encoding.h"
+#include <inttypes.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,6 +16,9 @@
 #include <platform.h>
 #include <stdatomic.h>
 #include <plic/plic_driver.h>
+
+#include "main.h"
+#include "encoding.h"
 
 volatile unsigned long dtb_target;
 
@@ -454,12 +456,26 @@ int main(int id, unsigned long dtb)
 	// Pack the FDT and place the data after it
 	fdt_pack((void*)dtb_target);
 
+  // Detect the GPIO for the chip
+  nodeoffset = fdt_node_offset_by_compatible((void*)dtb_target, 0, "sifive,gpio0");
+  if (nodeoffset >= 0) {
+    kputs("Found 'sifive,gpio0'\r\n");
+    const fdt32_t *prop_addr = fdt_getprop((void*)dtb_target, nodeoffset, "reg", &len);
+    if (!prop_addr) {
+      kprintf("\r\nCannot get reg space from 'sifive,gpio0'\r\nError %d", err);
+    } else {
+      gpio = (uint32_t*)(uint64_t)fdt32_to_cpu(*prop_addr++); prop_addr++;
+    }
+  }
 
-  // TODO: From this point, insert any code
-  kputs("\r\n\n\nWelcome! Hello world!\r\n\n");
-  
-  // If finished, stay in a infinite loop
-  while(1);
+  // Detect the SPI for the chip
+  nodeoffset = fdt_path_offset((void*)dtb_target, "/soc/spi@64002000"); // TODO: Do a better version of this.
+  if (nodeoffset >= 0) {
+    kputs("Found '/soc/spi@64002000'\r\n");
+    spi = (uint32_t*)0x64002000;
+  }
+
+  test();
 
   //dead code
   return 0;
