@@ -89,7 +89,9 @@ void test() {
 
     if(adc) {
         kputs("ADC detected!\r\n");
-        adc[4] = 0x1; // Enable the ADC
+        adc[1] = 0x001; // Enable the ADC
+        adc[1] = 0x101; // Enable the ADC
+        adc[1] = 0x001; // Enable the ADC
         while(1) {
             int32_t adcval = adc[0];
             if(adcval & 0x80000000) continue; // Fifo empty
