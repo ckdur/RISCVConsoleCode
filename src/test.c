@@ -9,6 +9,7 @@
 
 volatile uint32_t* spi = (uint32_t*)0;
 volatile uint32_t* gpio = (uint32_t*)0;
+volatile uint32_t* adc = (uint32_t*)0;
 
 static inline void put_gpio(int i, int val) {
     if(val) gpio[(GPIO_OUTPUT_VAL >> 2)] |= (1 << i);
@@ -51,6 +52,9 @@ void test() {
     if(!spi) {
         kputs("No SPI detected!\r\n");
     }
+    if(!adc) {
+        kputs("No ADC detected!\r\n");
+    }
 
     if(spi && gpio) {
         spi_init(spi);
@@ -67,7 +71,7 @@ void test() {
 
         put_gpio(14, 1); // Set Go in 1
 
-        for(;;) {
+        if(0) { // Commented out
             put_gpio(15, 1); // Set Reset to 1
             put_gpio(15, 0); // Set Reset to 0
             put_gpio(15, 1); // Set Reset to 1
@@ -80,6 +84,18 @@ void test() {
 
             // Wait for 1000 ms 
             clkutils_delay_ns(1000000000, 1000000000 / timescale_freq);
+        }
+    }
+
+    if(adc) {
+        kputs("ADC detected!\r\n");
+        adc[4] = 0x1; // Enable the ADC
+        while(1) {
+            int32_t adcval = adc[0];
+            if(adcval & 0x80000000) continue; // Fifo empty
+            kputs("ADC value: ");
+            kput_hex(adcval);
+            kputs("\r\n");
         }
     }
     kputs("Finished!\r\n");

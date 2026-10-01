@@ -9,6 +9,7 @@ extern int tlclk_freq;
 
 extern volatile uint32_t* spi;
 extern volatile uint32_t* gpio;
+extern volatile uint32_t* adc;
 
 void test();
 

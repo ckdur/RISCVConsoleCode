@@ -475,6 +475,18 @@ int main(int id, unsigned long dtb)
     spi = (uint32_t*)0x64002000;
   }
 
+  // Detect the ADCFIFO for the chip
+  nodeoffset = fdt_node_offset_by_compatible((void*)dtb_target, 0, "console,adcfifo0");
+  if (nodeoffset >= 0) {
+    kputs("Found 'console,adcfifo0'\r\n");
+    const fdt32_t *prop_addr = fdt_getprop((void*)dtb_target, nodeoffset, "reg", &len);
+    if (!prop_addr) {
+      kprintf("\r\nCannot get reg space from 'console,adcfifo0'\r\nError %d", err);
+    } else {
+      adc = (uint32_t*)(uint64_t)fdt32_to_cpu(*prop_addr++); prop_addr++;
+    }
+  }
+
   test();
 
   //dead code
