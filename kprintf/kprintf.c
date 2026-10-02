@@ -150,3 +150,11 @@ void kput_hex8(uint8_t hex) {
     kputc((nibble < 0xa) ? ('0' + nibble) : ('a' + nibble - 0xa));
   }
 }
+
+void kput_bin8(uint8_t hex) {
+  int num_bits = sizeof(hex) * 8;
+  for (int bit_idx = num_bits - 1; bit_idx >= 0; bit_idx--) {
+    char bit = (hex >> bit_idx) & 1;
+    kputc('0' + bit);
+  }
+}

@@ -22,6 +22,7 @@ extern void kputs(const char *);
 extern void kprintf(const char *, ...);
 extern void kput_hex(uint32_t hex);
 void kput_hex8(uint8_t hex);
+void kput_bin8(uint8_t hex);
 
 #ifdef DEBUG
 #define dprintf(s, ...)	kprintf((s), ##__VA_ARGS__)
