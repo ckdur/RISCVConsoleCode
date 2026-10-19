@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "main.h"
+#include "adc.h"
 
 volatile uint32_t* spi = (uint32_t*)0;
 volatile uint32_t* gpio = (uint32_t*)0;
@@ -89,17 +90,12 @@ void test() {
 
     if(adc) {
         kputs("ADC detected!\r\n");
-        adc[1] = 0x010000; // Clock polarity inverted
-        adc[1] = 0x010001; // Enable the ADC
-        adc[1] = 0x010101; // Assert the reset while enabling the ADC
-        adc[1] = 0x010001; // Deassert the reset while enabling the ADC
-        while(1) {
-            int32_t adcval = adc[0];
-            if(adcval & 0x80000000) continue; // Fifo empty
-            kputs("ADC value: ");
-            kput_bin8((uint8_t)adcval);
-            kputs("\r\n");
-        }
+        adc_init();
+
+        adc_stats_t stats;
+        adc_count = adc_capture(adc_buf, ADC_BUF_SIZE, &stats);
+        adc_report(adc_buf, adc_count, &stats);
+        // TODO: Send adc_buf[0..adc_count) through UART
     }
     kputs("Finished!\r\n");
 }
