@@ -27,6 +27,7 @@ LIB_FS_O= \
 	src/main.o \
 	src/test.o \
 	src/adc.o \
+	src/ro.o \
 	uart/uart.o \
 	$(BUILD_DIR)/version.o \
 	clkutils/clkutils.o \

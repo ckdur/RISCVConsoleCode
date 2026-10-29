@@ -487,6 +487,18 @@ int main(int id, unsigned long dtb)
     }
   }
 
+  // Detect the RO counter for the chip
+  nodeoffset = fdt_node_offset_by_compatible((void*)dtb_target, 0, "console,rocounter0");
+  if (nodeoffset >= 0) {
+    kputs("Found 'console,rocounter0'\r\n");
+    const fdt32_t *prop_addr = fdt_getprop((void*)dtb_target, nodeoffset, "reg", &len);
+    if (!prop_addr) {
+      kprintf("\r\nCannot get reg space from 'console,rocounter0'\r\nError %d", err);
+    } else {
+      rocnt = (uint32_t*)(uint64_t)fdt32_to_cpu(*prop_addr++); prop_addr++;
+    }
+  }
+
   test();
 
   //dead code
